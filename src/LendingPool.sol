@@ -256,6 +256,8 @@ contract LendingPool is
         uint256[] borrowerTokenIds
     );
 
+    error MaxUtilizationReached(address _token, uint256 _utilization, uint256 _maxUtilization);
+
     // =============================================================
     //                           MODIFIERS
     // =============================================================
@@ -356,7 +358,7 @@ contract LendingPool is
         uint256[] storage tokenIds = userCollateralTokenIds[msg.sender];
         bool found = false;
         uint256 indexToRemove;
-        
+
         for (uint256 i = 0; i < tokenIds.length; i++) {
             if (tokenIds[i] == _tokenId) {
                 found = true;
@@ -364,7 +366,7 @@ contract LendingPool is
                 break;
             }
         }
-        
+
         if (!found) {
             revert InsufficientCollateral(collateralToken, _tokenId, tokenIds.length);
         }
@@ -439,6 +441,9 @@ contract LendingPool is
     function borrow(uint256 _amount) public payable userAccessControl(msg.sender) whenNotPaused nonReentrant {
         if (_amount == 0) revert ZeroAmount();
         accrueInterest();
+
+        // Check if the new borrow would exceed max utilization
+
         _borrow(msg.sender, _amount);
         IIsHealthy(_isHealthy()).isHealthy(msg.sender, address(this));
         IERC20(borrowToken).safeTransfer(msg.sender, _amount);
@@ -480,19 +485,19 @@ contract LendingPool is
         // The rest goes to the liquidator
         uint256 totalNFTs = borrowerCollateralTokenIds.length;
         uint256 nftsToReturn = 0;
-        
+
         if (collateralValue > 0 && totalNFTs > 0) {
             // Calculate percentage to return to borrower
             nftsToReturn = (liquidationAllocationValue * totalNFTs) / collateralValue;
             if (nftsToReturn > totalNFTs) nftsToReturn = totalNFTs;
         }
-        
+
         uint256 nftsToLiquidator = totalNFTs - nftsToReturn;
 
         // Arrays to track which NFTs go where
         uint256[] memory liquidatorTokenIds = new uint256[](nftsToLiquidator);
         uint256[] memory borrowerTokenIds = new uint256[](nftsToReturn);
-        
+
         // Allocate NFTs: first ones to liquidator, rest to borrower
         for (uint256 i = 0; i < nftsToLiquidator; i++) {
             liquidatorTokenIds[i] = borrowerCollateralTokenIds[i];
@@ -510,12 +515,12 @@ contract LendingPool is
 
         // Transfers - borrow token from liquidator to pool
         IERC20(borrowToken).safeTransferFrom(msg.sender, address(this), userBorrowAssets);
-        
+
         // Transfer NFTs to liquidator
         for (uint256 i = 0; i < nftsToLiquidator; i++) {
             IERC721(collateralToken).safeTransferFrom(address(this), msg.sender, liquidatorTokenIds[i]);
         }
-        
+
         // Transfer remaining NFTs back to borrower
         for (uint256 i = 0; i < nftsToReturn; i++) {
             IERC721(collateralToken).safeTransferFrom(address(this), _borrower, borrowerTokenIds[i]);
@@ -618,6 +623,10 @@ contract LendingPool is
         if (totalBorrowAssets > totalSupplyAssets) {
             revert InsufficientLiquidity(borrowToken, _amount, totalSupplyAssets);
         }
+
+        uint256 newUtilization = (totalBorrowAssets * 1e18) / totalSupplyAssets;
+        uint256 maxUtilization = IInterestRateModel(_interestRateModel()).lendingPoolMaxUtilization(address(this));
+        if (newUtilization >= maxUtilization) revert MaxUtilizationReached(borrowToken, newUtilization, maxUtilization);
     }
 
     function _interestRateModel() internal view returns (address) {

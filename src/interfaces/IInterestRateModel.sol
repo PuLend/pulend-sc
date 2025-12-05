@@ -24,5 +24,12 @@ interface IInterestRateModel {
         external
         pure
         returns (uint256 interest);
+
+    /**
+     * @notice Returns the maximum allowed utilization rate for a lending pool
+     * @param _lendingPool The lending pool address
+     * @return The maximum utilization rate (scaled by 1e18)
+     */
+    function lendingPoolMaxUtilization(address _lendingPool) external view returns (uint256);
 }
 
