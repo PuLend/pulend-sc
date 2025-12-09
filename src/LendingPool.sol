@@ -171,7 +171,7 @@ contract LendingPool is
     mapping(address => uint256[]) public userCollateralTokenIds;
 
     /// @notice Total number of NFTs deposited as collateral
-    uint256 public totalCollateralNFTs;
+    uint256 public totalCollateralNfts;
 
     /// @notice User shares for supplied assets by user and token
     /// @dev user address => token address => shares amount
@@ -321,7 +321,7 @@ contract LendingPool is
     /// @notice Returns the total number of NFTs deposited as collateral
     /// @return The total number of NFT tokens deposited
     function totalCollateral() public view returns (uint256) {
-        return totalCollateralNFTs;
+        return totalCollateralNfts;
     }
 
     /// @notice Returns all NFT token IDs deposited by a user
@@ -343,7 +343,7 @@ contract LendingPool is
         accrueInterest();
 
         userCollateralTokenIds[msg.sender].push(_tokenId);
-        totalCollateralNFTs += 1;
+        totalCollateralNfts += 1;
         IERC721(collateralToken).safeTransferFrom(msg.sender, address(this), _tokenId);
 
         emit SupplyCollateral(msg.sender, collateralToken, _tokenId);
@@ -377,7 +377,7 @@ contract LendingPool is
         // Remove token ID from array by swapping with last element and popping
         tokenIds[indexToRemove] = tokenIds[tokenIds.length - 1];
         tokenIds.pop();
-        totalCollateralNFTs -= 1;
+        totalCollateralNfts -= 1;
 
         // Check health AFTER state update (critical for security)
         IIsHealthy(_isHealthy()).isHealthy(msg.sender, address(this));
@@ -483,16 +483,16 @@ contract LendingPool is
         // Calculate NFT allocation based on liquidation percentage
         // liquidationAllocation represents the value that should go back to borrower
         // The rest goes to the liquidator
-        uint256 totalNFTs = borrowerCollateralTokenIds.length;
+        uint256 totalNfts = borrowerCollateralTokenIds.length;
         uint256 nftsToReturn = 0;
 
-        if (collateralValue > 0 && totalNFTs > 0) {
+        if (collateralValue > 0 && totalNfts > 0) {
             // Calculate percentage to return to borrower
-            nftsToReturn = (liquidationAllocationValue * totalNFTs) / collateralValue;
-            if (nftsToReturn > totalNFTs) nftsToReturn = totalNFTs;
+            nftsToReturn = (liquidationAllocationValue * totalNfts) / collateralValue;
+            if (nftsToReturn > totalNfts) nftsToReturn = totalNfts;
         }
 
-        uint256 nftsToLiquidator = totalNFTs - nftsToReturn;
+        uint256 nftsToLiquidator = totalNfts - nftsToReturn;
 
         // Arrays to track which NFTs go where
         uint256[] memory liquidatorTokenIds = new uint256[](nftsToLiquidator);
@@ -509,7 +509,7 @@ contract LendingPool is
         // Update state
         totalBorrowAssets -= userBorrowAssets;
         totalBorrowShares -= userBorrowShares[_borrower];
-        totalCollateralNFTs -= totalNFTs;
+        totalCollateralNfts -= totalNfts;
         userBorrowShares[_borrower] = 0;
         delete userCollateralTokenIds[_borrower];
 

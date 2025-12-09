@@ -57,10 +57,14 @@ contract PulendScript is Script {
     }
 
     function _deployMockToken() internal {
-        idrx = new IDRX();
-        usdc = new USDC();
-        weth = new WETH();
-        wbtc = new WBTC();
+        // idrx = new IDRX();
+        // usdc = new USDC();
+        // weth = new WETH();
+        // wbtc = new WBTC();
+        idrx = IDRX(0x056620afe01E33802ce50637438677Dc7b4841E0);
+        usdc = USDC(0x8B604C1c5a5a821d6f14baf9c1D91D5b21A3f9Eb);
+        weth = WETH(0x2437d7a10064005a9Ce3667e8Ad4382C5C9A4404);
+        wbtc = WBTC(0x0Af7005696bCD6F721dD9e8F10aBD351383e10A5);
 
         console.log("address public IDRX", address(idrx));
         console.log("address public USDC", address(usdc));
@@ -69,25 +73,29 @@ contract PulendScript is Script {
     }
 
     function _deployCryptoPunks() internal {
-        cryptoPunks = new CryptoPunks();
-        console.log("address public CryptoPunks_Implementation", address(cryptoPunks));
-        bytes memory data = abi.encodeWithSelector(cryptoPunks.initialize.selector, deployer);
-        proxy = new ERC1967Proxy(address(cryptoPunks), data);
-        console.log("address public CryptoPunks_Proxy", address(proxy));
-        cryptoPunks = CryptoPunks(payable(proxy));
-        cryptoPunks.safeMint(deployer, tokenUri);
+        // cryptoPunks = new CryptoPunks();
+        // console.log("address public CryptoPunks_Implementation", address(cryptoPunks));
+        // bytes memory data = abi.encodeWithSelector(cryptoPunks.initialize.selector, deployer);
+        // proxy = new ERC1967Proxy(address(cryptoPunks), data);
+        // console.log("address public CryptoPunks_Proxy", address(proxy));
+        // cryptoPunks = CryptoPunks(payable(proxy));
+        // cryptoPunks.safeMint(deployer, tokenUri);
+
+        cryptoPunks = CryptoPunks(0x52cad2D4b50e821095BE8be6377BdeDc4A5E3937);
     }
 
     function _deployTokenDataStream() internal {
-        tokenDataStream = new TokenDataStream();
+        // tokenDataStream = new TokenDataStream();
+        // console.log("address public TokenDataStream", address(tokenDataStream));
+        tokenDataStream = TokenDataStream(0x515356c3e95C2e3c4dF4e955A71D84B1483e3909);
         console.log("address public TokenDataStream", address(tokenDataStream));
     }
 
     function _setPricefeed() internal {
-        pricefeed = new Pricefeed(address(cryptoPunks));
-        pricefeed.setPrice(0, 118378.38e8, block.timestamp, block.timestamp, 0);
-        tokenDataStream.setTokenPriceFeed(address(cryptoPunks), address(pricefeed));
-        console.log("address public Pricefeed_CryptoPunks_USD", address(pricefeed));
+        // pricefeed = new Pricefeed(address(cryptoPunks));
+        // pricefeed.setPrice(0, 118378.38e8, block.timestamp, block.timestamp, 0);
+        // tokenDataStream.setTokenPriceFeed(address(cryptoPunks), address(pricefeed));
+        // console.log("address public Pricefeed_CryptoPunks_USD", address(pricefeed));
 
         pricefeed = new Pricefeed(address(idrx));
         pricefeed.setPrice(0, 0.00006e8, block.timestamp, block.timestamp, 0);

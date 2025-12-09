@@ -135,11 +135,11 @@ contract InterestRateModel is Initializable, AccessControlUpgradeable, UUPSUpgra
         uint256 rateAtOptimal = lendingPoolRateAtOptimal[_lendingPool];
 
         // Check if utilization exceeds maximum allowed
-        // if (utilizationRate >= lendingPoolMaxUtilization[_lendingPool]) {
-        //     revert MaxUtilizationReached(
-        //         _borrowToken(_lendingPool), utilizationRate, lendingPoolMaxUtilization[_lendingPool]
-        //     );
-        // }
+        if (utilizationRate >= lendingPoolMaxUtilization[_lendingPool]) {
+            revert MaxUtilizationReached(
+                _borrowToken(_lendingPool), utilizationRate, lendingPoolMaxUtilization[_lendingPool]
+            );
+        }
 
         if (utilizationRate <= optimalUtilization) {
             // Linear increase from base rate to optimal rate
