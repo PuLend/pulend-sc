@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract Helper {
+    address public immutable ARB_ORACLE_CryptoPunks_USD = 0xC7e820D6258C214874246D4ba53b30A3b5705E7F;
+    address public immutable ARB_ORACLE_BTC_USD = 0x56a43EB56Da12C0dc1D972ACb089c06a5dEF8e69;
+    address public immutable ARB_ORACLE_ETH_USD = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
+    address public immutable ARB_ORACLE_USDC_USD = 0x0153002d20B96532C639313c2d54c3dA09109309;
+
+    address public immutable ARB_USDC = 0x0A8d670EBE6a01Ed1623eA13Dd928e66051c8147;
+    address public immutable ARB_WETH = 0x1875f28FfABbf325C75544FC30Dbb920b33619eE;
+    address public immutable ARB_WBTC = 0xE78b8806b3f9833C3A3fDC942D3F9cE304946cfC;
+
+    address public immutable ARB_CRYPTOPUNKS_IMPLEMENTATION = 0x3f5aad60f5655635378aB24adBa9235B6796F32F;
+    address public immutable ARB_CRYPTOPUNKS = 0x86384508613D97A7A7D70Ba264f06cDEd136c58d;
+
+    address public immutable ARB_TOKEN_DATA_STREAM = 0xe8c2A3D1EA58BB23Ee72FC7dBFa8800B89f4e76B;
+
+    address public immutable ARB_ROUTER = 0xe03ceC7a0cf54685a991FE0b000df7814D8aF8A6;
+
+    address public immutable ARB_IS_HEALTHY = 0x93890c2abA1434d3105652baaE9A37630e81b065;
+
+    address public immutable ARB_LENDING_POOL_IMPLEMENTATION = 0xb87Da96C76001A5023155cc4e6f575C2890e1fB2;
+    address public immutable ARB_LENDING_POOL = 0x01316834f5B709D5B5f5cc5691FD6AA71b232AD8; // CRYPTOPUNKS/USDC
+
+    address public immutable ARB_INTEREST_RATE_MODEL_IMPLEMENTATION = 0xD4Bca790CB2837813272c3FcbF2513Fa428F3218;
+    address public immutable ARB_INTEREST_RATE_MODEL = 0x6C6311DF4aAd49262eDbC41ABFa828935BF9DbbB;
+}

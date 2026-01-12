@@ -7,3 +7,4 @@ remappings = []
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 [rpc_endpoints]
 story_testnet = "${STORY_TESTNET_RPC}"
+arb_testnet = "${ARB_TESTNET_RPC}"

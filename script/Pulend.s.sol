@@ -7,19 +7,18 @@ import {LendingPool} from "../src/LendingPool.sol";
 import {Router} from "../src/Router.sol";
 import {IsHealthy} from "../src/IsHealthy.sol";
 import {TokenDataStream} from "../src/TokenDataStream.sol";
-import {IDRX} from "../src/mocks/IDRX.sol";
 import {USDC} from "../src/mocks/USDC.sol";
 import {WETH} from "../src/mocks/WETH.sol";
 import {WBTC} from "../src/mocks/WBTC.sol";
 import {Pricefeed} from "../src/Pricefeed.sol";
 import {InterestRateModel} from "../src/InterestRateModel.sol";
 import {CryptoPunks} from "../src/mocks/CryptoPunks.sol";
+import {Helper} from "./devtools/Helper.sol";
 
-contract PulendScript is Script {
+contract PulendScript is Script, Helper {
     uint256 privateKey = vm.envUint("PRIVATE_KEY");
     address deployer = vm.addr(privateKey);
 
-    IDRX public idrx;
     USDC public usdc;
     WETH public weth;
     WBTC public wbtc;
@@ -36,10 +35,10 @@ contract PulendScript is Script {
     string tokenUri = "ipfs://Qmd4LWWR7K2b7ce8uMhVzZnHpfbxTtGQioH2r6Vmh8WJbm";
 
     function setUp() public {
-        vm.createSelectFork(vm.rpcUrl("story_testnet"));
+        vm.createSelectFork(vm.rpcUrl("arb_testnet"));
     }
 
-    function run() public {
+    function run() public virtual {
         vm.startBroadcast(privateKey);
         _deployMockToken();
         _deployCryptoPunks();
@@ -56,90 +55,87 @@ contract PulendScript is Script {
         vm.stopBroadcast();
     }
 
-    function _deployMockToken() internal {
-        // idrx = new IDRX();
-        // usdc = new USDC();
-        // weth = new WETH();
-        // wbtc = new WBTC();
-        idrx = IDRX(0x056620afe01E33802ce50637438677Dc7b4841E0);
-        usdc = USDC(0x8B604C1c5a5a821d6f14baf9c1D91D5b21A3f9Eb);
-        weth = WETH(0x2437d7a10064005a9Ce3667e8Ad4382C5C9A4404);
-        wbtc = WBTC(0x0Af7005696bCD6F721dD9e8F10aBD351383e10A5);
+    function _getUtils() internal {
+        usdc = USDC(ARB_USDC);
+        weth = WETH(ARB_WETH);
+        wbtc = WBTC(ARB_WBTC);
 
-        console.log("address public IDRX", address(idrx));
-        console.log("address public USDC", address(usdc));
-        console.log("address public WETH", address(weth));
-        console.log("address public WBTC", address(wbtc));
+        cryptoPunks = CryptoPunks(ARB_CRYPTOPUNKS);
+
+        tokenDataStream = TokenDataStream(ARB_TOKEN_DATA_STREAM);
+
+        router = Router(ARB_ROUTER);
+
+        isHealthy = IsHealthy(ARB_IS_HEALTHY);
+
+        lendingPool = LendingPool(payable(ARB_LENDING_POOL));
+
+        interestRateModel = InterestRateModel(ARB_INTEREST_RATE_MODEL);
+    }
+
+    function _deployMockToken() internal {
+        usdc = new USDC();
+        weth = new WETH();
+        wbtc = new WBTC();
+
+        console.log("address public immutable ARB_USDC = %s;", address(usdc));
+        console.log("address public immutable ARB_WETH = %s;", address(weth));
+        console.log("address public immutable ARB_WBTC = %s;", address(wbtc));
     }
 
     function _deployCryptoPunks() internal {
-        // cryptoPunks = new CryptoPunks();
-        // console.log("address public CryptoPunks_Implementation", address(cryptoPunks));
-        // bytes memory data = abi.encodeWithSelector(cryptoPunks.initialize.selector, deployer);
-        // proxy = new ERC1967Proxy(address(cryptoPunks), data);
-        // console.log("address public CryptoPunks_Proxy", address(proxy));
-        // cryptoPunks = CryptoPunks(payable(proxy));
-        // cryptoPunks.safeMint(deployer, tokenUri);
-
-        cryptoPunks = CryptoPunks(0x52cad2D4b50e821095BE8be6377BdeDc4A5E3937);
+        cryptoPunks = new CryptoPunks();
+        console.log("address public immutable ARB_CRYPTOPUNKS_IMPLEMENTATION = %s;", address(cryptoPunks));
+        bytes memory data = abi.encodeWithSelector(cryptoPunks.initialize.selector, deployer);
+        proxy = new ERC1967Proxy(address(cryptoPunks), data);
+        console.log("address public immutable ARB_CRYPTOPUNKS = %s;", address(proxy));
+        cryptoPunks = CryptoPunks(payable(proxy));
+        cryptoPunks.safeMint(deployer, tokenUri);
     }
 
     function _deployTokenDataStream() internal {
-        // tokenDataStream = new TokenDataStream();
-        // console.log("address public TokenDataStream", address(tokenDataStream));
-        tokenDataStream = TokenDataStream(0x515356c3e95C2e3c4dF4e955A71D84B1483e3909);
-        console.log("address public TokenDataStream", address(tokenDataStream));
+        tokenDataStream = new TokenDataStream();
+        console.log("address public immutable ARB_TOKEN_DATA_STREAM = %s;", address(tokenDataStream));
     }
 
     function _setPricefeed() internal {
-        // pricefeed = new Pricefeed(address(cryptoPunks));
-        // pricefeed.setPrice(0, 118378.38e8, block.timestamp, block.timestamp, 0);
-        // tokenDataStream.setTokenPriceFeed(address(cryptoPunks), address(pricefeed));
-        // console.log("address public Pricefeed_CryptoPunks_USD", address(pricefeed));
+        pricefeed = new Pricefeed(address(cryptoPunks));
+        pricefeed.setPrice(0, 118378.38e8, block.timestamp, block.timestamp, 0);
+        tokenDataStream.setTokenPriceFeed(address(cryptoPunks), address(pricefeed));
+        console.log("address public immutable ARB_PRICEFEED_CryptoPunks_USD = %s;", address(pricefeed));
 
-        pricefeed = new Pricefeed(address(idrx));
-        pricefeed.setPrice(0, 0.00006e8, block.timestamp, block.timestamp, 0);
-        tokenDataStream.setTokenPriceFeed(address(idrx), address(pricefeed));
-        console.log("address public Pricefeed_IDRX_USD", address(pricefeed));
+        // tokenDataStream.setTokenPriceFeed(address(usdc), ARB_ORACLE_USDC_USD);
+        // console.log("address public immutable ARB_PRICEFEED_USDC_USD = %s;", ARB_ORACLE_USDC_USD);
 
-        pricefeed = new Pricefeed(address(usdc));
-        pricefeed.setPrice(0, 1e8, block.timestamp, block.timestamp, 0);
-        tokenDataStream.setTokenPriceFeed(address(usdc), address(pricefeed));
-        console.log("address public Pricefeed_USDC_USD", address(pricefeed));
+        // tokenDataStream.setTokenPriceFeed(address(weth), ARB_ORACLE_ETH_USD);
+        // console.log("address public immutable ARB_PRICEFEED_WETH_USD = %s;", ARB_ORACLE_ETH_USD);
 
-        pricefeed = new Pricefeed(address(weth));
-        pricefeed.setPrice(0, 2800e8, block.timestamp, block.timestamp, 0);
-        tokenDataStream.setTokenPriceFeed(address(weth), address(pricefeed));
-        console.log("address public Pricefeed_WETH_USD", address(pricefeed));
-
-        pricefeed = new Pricefeed(address(wbtc));
-        pricefeed.setPrice(0, 90000e8, block.timestamp, block.timestamp, 0);
-        tokenDataStream.setTokenPriceFeed(address(wbtc), address(pricefeed));
-        console.log("address public Pricefeed_WBTC_USD", address(pricefeed));
+        // tokenDataStream.setTokenPriceFeed(address(wbtc), ARB_ORACLE_BTC_USD);
+        // console.log("address public immutable ARB_PRICEFEED_WBTC_USD = %s;", ARB_ORACLE_BTC_USD);
     }
 
     function _deployRouter() internal {
         router = new Router();
-
-        console.log("address public Router", address(router));
+        console.log("address public immutable ARB_ROUTER = %s;", address(router));
     }
 
     function _deployAndSetIsHealthy() internal {
         isHealthy = new IsHealthy(address(router));
+        console.log("address public immutable ARB_IS_HEALTHY = %s;", address(isHealthy));
     }
 
     function _deployImplementation() internal {
         lendingPool = new LendingPool();
 
-        console.log("address public LendingPool_Implementation", address(lendingPool));
+        console.log("address public immutable ARB_LENDING_POOL_IMPLEMENTATION = %s;", address(lendingPool));
     }
 
     function _deployInterestRateModel() internal {
         interestRateModel = new InterestRateModel();
-        console.log("address public InterestRateModel_Implementation", address(interestRateModel));
+        console.log("address public immutable ARB_INTEREST_RATE_MODEL_IMPLEMENTATION = %s;", address(interestRateModel));
         bytes memory data = abi.encodeWithSelector(interestRateModel.initialize.selector);
         proxy = new ERC1967Proxy(address(interestRateModel), data);
-        console.log("address public InterestRateModel_Proxy", address(proxy));
+        console.log("address public immutable ARB_INTEREST_RATE_MODEL = %s;", address(proxy));
         interestRateModel = InterestRateModel(payable(proxy));
     }
 
@@ -161,7 +157,7 @@ contract PulendScript is Script {
 
         router.setLendingPool(address(lendingPool));
 
-        console.log("address public LendingPool_Proxy", address(proxy));
+        console.log("address public immutable ARB_LENDING_POOL = %s;", address(proxy));
     }
 
     function _tweakingInterestRateModel() internal {
@@ -179,6 +175,6 @@ contract PulendScript is Script {
     }
 }
 
-// RUN -- verifier blockscout
-// forge script PulendScript --broadcast --verify --verifier blockscout -vvv
+// RUN
+// forge script PulendScript --broadcast --verify --verifier etherscan --etherscan-api-key $ETHERSCAN_API_KEY -vvv
 // forge script PulendScript -vvv
